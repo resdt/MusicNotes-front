@@ -27,7 +27,6 @@ def bookmark():
 
 @st.fragment
 def show_music_sheet_converter():
-    audio_content = st.session_state.audio_content
     uploaded_files = st.file_uploader("Выберите один или несколько файлов в порядке следования нотных листов", accept_multiple_files=True)
     if uploaded_files:
         if st.button("Преобразовать в аудиодорожку"):
@@ -35,10 +34,16 @@ def show_music_sheet_converter():
                 try:
                     files = [("files", (f"{idx:03d}_{file_.name}", file_.read(), file_.type)) for idx, file_ in enumerate(uploaded_files, start=1)]
                     response = requests.post(f"{os.getenv('API_BASE_URL')}/app/process_music", files=files)
-                    audio_content = response.content
-                    st.session_state.audio_content = audio_content
+                    response.raise_for_status()
+                    st.session_state.audio_content = response.content
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 400:
+                        user_dpi = e.response.json()["detail"].split()[-1]
+                        st.error(f"Разрешение файлов слишком низкое: {user_dpi} DPI, необходимо не менее 300 DPI")
                 except Exception:
                     st.error("Ошибка при преобразовании файлов")
+
+    audio_content = st.session_state.audio_content
     if audio_content is not None:
         st.audio(audio_content, format="audio/wav")
         if st.button("Добавить в избранное", icon=":material/bookmark:"):
