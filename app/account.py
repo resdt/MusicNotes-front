@@ -40,8 +40,10 @@ def show_music_sheet_converter():
                     if e.response.status_code == 400:
                         user_dpi = e.response.json()["detail"].split()[-1]
                         st.error(f"Разрешение файлов слишком низкое: {user_dpi} DPI, необходимо не менее 300 DPI")
-                except Exception:
-                    st.error("Ошибка при преобразовании файлов")
+                    elif e.response.status_code == 422:
+                        st.error("Один или несколько файлов не соответствуют формату нотных листов или повреждены")
+                    else:
+                        st.error("Ошибка при преобразовании файлов")
 
     audio_content = st.session_state.audio_content
     if audio_content is not None:
