@@ -20,7 +20,7 @@ def sign_up():
     if not valid_username and username:
         st.error("Имя пользователя уже используется")
 
-    password = st.text_input("Введите пароль")
+    password = st.text_input("Введите пароль", type="password")
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
     if st.button("Зарегистрироваться", use_container_width=True):
